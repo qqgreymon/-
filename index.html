@@ -2,27 +2,30 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>頭痛日記 - 整合版</title>
-    <link rel="apple-touch-icon" href="header-bg.png">
-    <link rel="icon" href="header-bg.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>頭痛日記 - 雙人版</title>
+    
+    <link rel="icon" href="icon.png" type="image/png">
+    <link rel="apple-touch-icon" href="icon.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#f0f8ff">
+
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Zen+Maru+Gothic:wght@500;700&display=swap" rel="stylesheet">
 
     <style>
+        * { -webkit-tap-highlight-color: transparent; }
         body {
             font-family: 'Zen Maru Gothic', 'Noto Sans TC', sans-serif;
             background-color: #f0f8ff; 
+            overscroll-behavior-y: none;
         }
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .app-container {
             max-width: 480px;
             margin: 0 auto;
@@ -31,21 +34,26 @@
             box-shadow: 0 0 20px rgba(0,0,0,0.05);
             position: relative;
             overflow-x: hidden;
+            padding-bottom: 80px; /* 增加底部留白 */
         }
-        /* 優化後的 Tab 樣式 */
         .glass-tab {
-            /* 改為深色半透明底，讓白色 ICON 在淺色背景圖上更明顯 */
             background: rgba(0, 0, 0, 0.25);
             backdrop-filter: blur(4px);
             border: 1px solid rgba(255, 255, 255, 0.4);
             border-radius: 12px;
-            color: white; /* 強制白色 ICON */
+            color: white;
         }
         .active-tab {
             background: rgba(255, 255, 255, 0.95);
-            color: #2563EB; /* 更深的藍色，增加對比 */
-            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3); /* 藍色光暈 */
+            color: #2563EB;
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
             transform: translateY(-2px);
+        }
+        /* 角色選擇器樣式 */
+        .char-btn.active {
+            border: 2px solid;
+            transform: scale(1.05);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
     </style>
     <script>
@@ -55,6 +63,8 @@
                     colors: {
                         'soft-blue': '#E0F2F1',
                         'cinn-blue': '#4A90E2',
+                        'stitch-blue': '#1E3A8A', /* 史迪奇深藍 */
+                        'stitch-light': '#93C5FD',
                     }
                 }
             }
@@ -84,7 +94,7 @@
         </div>
     </header>
 
-    <main class="relative -mt-6 bg-white rounded-t-3xl min-h-[600px] shadow-[0_-5px_15px_rgba(0,0,0,0.05)] pt-8 pb-24 px-5 z-10">
+    <main class="relative -mt-6 bg-white rounded-t-3xl min-h-[600px] shadow-[0_-5px_15px_rgba(0,0,0,0.05)] pt-8 px-5 z-10">
 
         <h2 class="text-2xl font-bold text-gray-700 mb-6 text-center border-b-2 border-soft-blue inline-block pb-1 px-4 mx-auto block w-fit">
             {{ getTabTitle }}
@@ -93,48 +103,56 @@
         <div v-if="currentTab === 'headache'" class="space-y-4">
             <div v-if="headacheRecords.length === 0" class="text-center text-gray-400 py-10">
                 <i class="fa-solid fa-face-smile text-4xl mb-2"></i>
-                <p>目前沒有頭痛紀錄</p>
+                <p>目前沒有紀錄，點擊右下角新增</p>
             </div>
             
-            <div v-for="(record, index) in headacheRecords" :key="record.id" class="bg-blue-50 p-4 rounded-2xl shadow-sm border border-blue-100 relative group">
-                <div class="flex justify-between items-start mb-2">
-                    <div class="flex items-center gap-2">
-                        <span class="bg-white text-cinn-blue text-xs font-bold px-2 py-1 rounded-full shadow-sm">
-                            {{ record.period }} {{ record.time }}
-                        </span>
-                        <span v-if="record.hasMeds" class="bg-emerald-100 text-emerald-600 text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
-                            <i class="fa-solid fa-pills"></i> 已投藥
-                        </span>
+            <div v-for="(record, index) in sortedHeadacheRecords" :key="record.id" 
+                 :class="['p-4 rounded-2xl shadow-sm border relative group overflow-hidden', 
+                          record.character === 'stitch' ? 'bg-indigo-50 border-indigo-200' : 'bg-sky-50 border-sky-200']">
+                
+                <div :class="['absolute left-0 top-0 bottom-0 w-2', record.character === 'stitch' ? 'bg-stitch-blue' : 'bg-sky-400']"></div>
+
+                <div class="flex justify-between items-start mb-2 pl-3">
+                    <div class="flex flex-col gap-1">
+                        <div class="flex items-center gap-2">
+                             <span :class="['text-xs font-bold px-2 py-0.5 rounded-full text-white', record.character === 'stitch' ? 'bg-stitch-blue' : 'bg-sky-400']">
+                                {{ record.character === 'stitch' ? '史迪奇' : '大耳狗' }}
+                            </span>
+                            <span class="text-gray-500 text-sm font-medium">
+                                {{ record.date }} ({{ record.period }})
+                            </span>
+                        </div>
+                        <span class="text-2xl font-bold text-gray-700 font-mono">{{ record.time }}</span>
                     </div>
+                    
                     <div class="flex gap-2">
-                        <button v-if="index > 0" @click="moveRecord('headache', index, -1)" class="text-gray-300 hover:text-gray-500"><i class="fa-solid fa-chevron-up"></i></button>
-                        <button v-if="index < headacheRecords.length - 1" @click="moveRecord('headache', index, 1)" class="text-gray-300 hover:text-gray-500"><i class="fa-solid fa-chevron-down"></i></button>
-                        <button @click="editRecord('headache', record)" class="text-gray-400 hover:text-blue-500"><i class="fa-solid fa-pen-to-square"></i></button>
+                         <button @click="editRecord('headache', record)" class="text-gray-400 hover:text-blue-500 p-1"><i class="fa-solid fa-pen-to-square"></i></button>
                     </div>
                 </div>
                 
-                <div class="flex items-center gap-2 mb-2">
-                    <span class="text-gray-600 text-sm">疼痛程度：</span>
-                    <div class="flex gap-1">
-                        <div v-for="n in 3" :key="n" :class="['w-3 h-3 rounded-full', n <= record.intensity ? (record.intensity === 3 ? 'bg-red-400' : 'bg-blue-400') : 'bg-gray-200']"></div>
+                <div class="pl-3">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-gray-600 text-sm">疼痛程度：</span>
+                        <div class="flex gap-1">
+                            <div v-for="n in 3" :key="n" :class="['w-3 h-3 rounded-full', n <= record.intensity ? (record.intensity === 3 ? 'bg-red-400' : (record.character==='stitch'?'bg-indigo-400':'bg-sky-400')) : 'bg-gray-200']"></div>
+                        </div>
                     </div>
-                    <span class="text-xs text-gray-500">({{ getIntensityLabel(record.intensity) }})</span>
-                </div>
 
-                <div class="flex flex-wrap gap-1 mb-2">
-                    <span v-for="sym in record.symptoms" class="text-xs bg-white text-gray-600 px-2 py-1 rounded border border-gray-100">
-                        {{ sym }}
-                    </span>
-                </div>
-
-                <div v-if="record.hasMeds" class="mt-3 pt-2 border-t border-blue-100 text-sm text-gray-600 bg-blue-100/30 p-2 rounded-lg">
-                    <div class="font-bold text-emerald-600 mb-1">
-                        <i class="fa-solid fa-prescription-bottle-medical mr-1"></i>
-                        {{ record.medNames.join(', ') }}
+                    <div class="flex flex-wrap gap-1 mb-2">
+                        <span v-for="sym in record.symptoms" class="text-xs bg-white text-gray-600 px-2 py-1 rounded border border-gray-100">
+                            {{ sym }}
+                        </span>
                     </div>
-                    <div class="flex justify-between text-xs text-gray-500">
-                        <span>服用時間: {{ record.medTime }}</span>
-                        <span class="font-medium text-emerald-600">效果: {{ record.medReaction }}</span>
+
+                    <div v-if="record.hasMeds" :class="['mt-3 pt-2 border-t text-sm p-2 rounded-lg', record.character === 'stitch' ? 'border-indigo-100 bg-indigo-100/50' : 'border-sky-100 bg-sky-100/50']">
+                        <div class="font-bold text-gray-700 mb-1 flex items-center">
+                            <i class="fa-solid fa-pills mr-1"></i>
+                            {{ record.medNames.join(', ') }}
+                        </div>
+                        <div class="flex justify-between text-xs text-gray-500">
+                            <span>服用: {{ record.medTime }}</span>
+                            <span class="font-medium text-emerald-600">效果: {{ record.medReaction }}</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -148,12 +166,15 @@
             <div v-if="exerciseRecords.length === 0" class="text-center text-gray-400 py-10">
                 <p>還沒運動喔！</p>
             </div>
-            <div v-for="record in exerciseRecords" :key="record.id" class="bg-orange-50 p-4 rounded-2xl shadow-sm border border-orange-100 flex justify-between items-center">
+            <div v-for="record in exerciseRecords" :key="record.id" class="bg-orange-50 p-4 rounded-2xl shadow-sm border border-orange-100 flex justify-between items-center relative">
+                 <button @click="deleteItem('exercise', record.id)" class="absolute top-2 right-2 text-gray-300 hover:text-red-400"><i class="fa-solid fa-trash"></i></button>
                 <div>
                     <div class="text-xl font-bold text-gray-700">{{ record.item }}</div>
-                    <div class="text-gray-500 text-sm mt-1"><i class="fa-regular fa-clock mr-1"></i>{{ record.time }}</div>
+                    <div class="text-gray-500 text-sm mt-1">
+                        <i class="fa-regular fa-calendar mr-1"></i>{{ record.date }}
+                        <i class="fa-regular fa-clock ml-2 mr-1"></i>{{ record.time }}
+                    </div>
                 </div>
-                <button @click="deleteItem('exercise', record.id)" class="text-gray-300 hover:text-red-400"><i class="fa-solid fa-trash"></i></button>
             </div>
             <button @click="openModal('exercise')" class="fixed bottom-8 right-6 w-14 h-14 bg-orange-400 text-white rounded-full shadow-lg flex items-center justify-center text-2xl hover:scale-105 transition-transform z-50">
                 <i class="fa-solid fa-plus"></i>
@@ -164,12 +185,12 @@
              <div v-if="periodRecords.length === 0" class="text-center text-gray-400 py-10">
                 <p>新增經期紀錄</p>
             </div>
-            <div v-for="record in periodRecords" :key="record.id" class="bg-rose-50 p-4 rounded-2xl shadow-sm border border-rose-100 flex justify-between items-center">
+            <div v-for="record in periodRecords" :key="record.id" class="bg-rose-50 p-4 rounded-2xl shadow-sm border border-rose-100 flex justify-between items-center relative">
+                <button @click="deleteItem('period', record.id)" class="absolute top-2 right-2 text-gray-300 hover:text-red-400"><i class="fa-solid fa-trash"></i></button>
                 <div>
                     <div class="text-rose-600 font-bold"><i class="fa-solid fa-droplet mr-2"></i>經期</div>
                     <div class="text-gray-700 mt-1">{{ record.startDate }} ~ {{ record.endDate }}</div>
                 </div>
-                <button @click="deleteItem('period', record.id)" class="text-gray-300 hover:text-red-400"><i class="fa-solid fa-trash"></i></button>
             </div>
             <button @click="openModal('period')" class="fixed bottom-8 right-6 w-14 h-14 bg-rose-400 text-white rounded-full shadow-lg flex items-center justify-center text-2xl hover:scale-105 transition-transform z-50">
                 <i class="fa-solid fa-plus"></i>
@@ -177,47 +198,82 @@
         </div>
 
         <div v-if="currentTab === 'summary'" class="space-y-6">
-            <div class="bg-white border-2 border-dashed border-gray-200 rounded-xl p-5 text-gray-600">
-                <h3 class="text-lg font-bold text-cinn-blue mb-4 border-l-4 border-cinn-blue pl-2">本月醫師報告摘要</h3>
-                
-                <div class="grid grid-cols-2 gap-4 mb-4">
-                    <div class="bg-gray-50 p-3 rounded-lg text-center">
-                        <div class="text-xs text-gray-500">頭痛總次數</div>
-                        <div class="text-2xl font-bold text-gray-700">{{ summaryData.totalDays }} <span class="text-xs font-normal">次</span></div>
+            
+            <div class="bg-sky-50 border border-sky-200 rounded-xl p-4">
+                <div class="flex items-center gap-2 mb-3 pb-2 border-b border-sky-200">
+                    <span class="bg-sky-400 text-white text-xs font-bold px-2 py-1 rounded-full">大耳狗</span>
+                    <h3 class="font-bold text-gray-700">健康報告</h3>
+                </div>
+                <div class="grid grid-cols-2 gap-3 mb-3">
+                    <div class="bg-white p-2 rounded text-center shadow-sm">
+                        <div class="text-xs text-gray-500">頭痛次數</div>
+                        <div class="text-xl font-bold text-sky-600">{{ getStats('cinnamoroll').count }}</div>
                     </div>
-                    <div class="bg-gray-50 p-3 rounded-lg text-center">
-                        <div class="text-xs text-gray-500">最痛等級</div>
-                        <div class="text-2xl font-bold text-red-400">{{ summaryData.maxPain }}</div>
+                    <div class="bg-white p-2 rounded text-center shadow-sm">
+                         <div class="text-xs text-gray-500">投藥次數</div>
+                         <div class="text-xl font-bold text-emerald-500">{{ getStats('cinnamoroll').meds }}</div>
                     </div>
                 </div>
-
-                <div class="space-y-2 text-sm">
-                    <p><strong><i class="fa-solid fa-chart-simple mr-2 text-blue-400"></i>疼痛分級統計：</strong></p>
-                    <ul class="list-disc pl-8 space-y-1">
-                        <li>輕度 (1級)：{{ summaryData.level1 }} 次</li>
-                        <li>中度 (2級)：{{ summaryData.level2 }} 次</li>
-                        <li>重度 (3級)：{{ summaryData.level3 }} 次</li>
-                    </ul>
-                </div>
-                
-                <div class="mt-4 pt-4 border-t border-gray-100 space-y-2 text-sm">
-                     <p><strong><i class="fa-solid fa-pills mr-2 text-green-400"></i>投藥次數：</strong> {{ summaryData.medCount }} 次</p>
-                     <p><strong><i class="fa-solid fa-person-running mr-2 text-orange-400"></i>運動天數：</strong> {{ exerciseRecords.length }} 天</p>
-                     <p><strong><i class="fa-solid fa-droplet mr-2 text-rose-400"></i>最近經期：</strong> {{ periodRecords.length > 0 ? periodRecords[0].startDate : '無紀錄' }}</p>
+                <div class="text-sm text-gray-600 space-y-1">
+                    <p>重度疼痛：{{ getStats('cinnamoroll').severe }} 次</p>
                 </div>
             </div>
-            <p class="text-center text-xs text-gray-400">此報表依據當月紀錄自動生成</p>
+
+            <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4">
+                <div class="flex items-center gap-2 mb-3 pb-2 border-b border-indigo-200">
+                    <span class="bg-stitch-blue text-white text-xs font-bold px-2 py-1 rounded-full">史迪奇</span>
+                    <h3 class="font-bold text-gray-700">健康報告</h3>
+                </div>
+                <div class="grid grid-cols-2 gap-3 mb-3">
+                    <div class="bg-white p-2 rounded text-center shadow-sm">
+                        <div class="text-xs text-gray-500">頭痛次數</div>
+                        <div class="text-xl font-bold text-indigo-800">{{ getStats('stitch').count }}</div>
+                    </div>
+                    <div class="bg-white p-2 rounded text-center shadow-sm">
+                         <div class="text-xs text-gray-500">投藥次數</div>
+                         <div class="text-xl font-bold text-emerald-500">{{ getStats('stitch').meds }}</div>
+                    </div>
+                </div>
+                 <div class="text-sm text-gray-600 space-y-1">
+                    <p>重度疼痛：{{ getStats('stitch').severe }} 次</p>
+                </div>
+            </div>
+
+            <div class="bg-white border-dashed border-2 border-gray-200 rounded-xl p-4 text-sm text-gray-500">
+                <p><i class="fa-solid fa-person-running mr-2 text-orange-400"></i>本月運動總天數：{{ exerciseRecords.length }} 天</p>
+                <p class="mt-2"><i class="fa-solid fa-droplet mr-2 text-rose-400"></i>最近經期：{{ periodRecords.length > 0 ? periodRecords[0].startDate : '無紀錄' }}</p>
+            </div>
+            
+            <button @click="clearAllData" class="w-full py-3 text-red-300 text-xs text-center hover:text-red-500">
+                (開發用) 清除所有資料
+            </button>
         </div>
 
     </main>
 
-    <div v-if="isModalOpen" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+    <div v-if="isModalOpen" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-white w-full max-w-sm rounded-2xl p-6 shadow-2xl transform transition-all scale-100 max-h-[90vh] overflow-y-auto">
-            <h3 class="text-xl font-bold text-gray-700 mb-4">{{ isEditing ? '編輯紀錄' : '新增紀錄' }}</h3>
+            
+            <div v-if="modalType === 'headache'" class="mb-5 flex gap-3 justify-center">
+                <button @click="form.character = 'cinnamoroll'" 
+                    :class="['char-btn flex-1 py-3 rounded-xl flex flex-col items-center gap-1 transition-all', form.character === 'cinnamoroll' ? 'active bg-sky-50 border-sky-400 text-sky-600' : 'bg-gray-50 border-transparent opacity-60']">
+                    <span class="font-bold">大耳狗</span>
+                </button>
+                <button @click="form.character = 'stitch'" 
+                    :class="['char-btn flex-1 py-3 rounded-xl flex flex-col items-center gap-1 transition-all', form.character === 'stitch' ? 'active bg-indigo-50 border-indigo-800 text-indigo-800' : 'bg-gray-50 border-transparent opacity-60']">
+                    <span class="font-bold">史迪奇</span>
+                </button>
+            </div>
+
+            <h3 class="text-xl font-bold text-gray-700 mb-4 text-center">{{ isEditing ? '編輯紀錄' : '新增紀錄' }}</h3>
             
             <div v-if="modalType === 'headache'" class="space-y-4">
                 
                 <div class="grid grid-cols-2 gap-3">
+                    <div class="col-span-2">
+                         <label class="block text-xs text-gray-500 mb-1">日期</label>
+                         <input type="date" v-model="form.date" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm font-sans">
+                    </div>
                     <div>
                         <label class="block text-xs text-gray-500 mb-1">時段</label>
                         <select v-model="form.period" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm">
@@ -228,22 +284,23 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs text-gray-500 mb-1">發生時間</label>
+                        <label class="block text-xs text-gray-500 mb-1">時間</label>
                         <input type="time" v-model="form.time" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm">
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-xs text-gray-500 mb-1">疼痛程度 (1-3)</label>
-                    <select v-model="form.intensity" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm">
-                        <option :value="1">1 - 輕微</option>
-                        <option :value="2">2 - 中度</option>
-                        <option :value="3">3 - 重度 (無法忍受)</option>
-                    </select>
+                    <div class="flex gap-2">
+                        <button v-for="n in 3" :key="n" @click="form.intensity = n" 
+                            :class="['flex-1 py-2 rounded border text-sm', form.intensity === n ? (n===3?'bg-red-500 text-white border-red-500':'bg-blue-500 text-white border-blue-500') : 'bg-white border-gray-200']">
+                            {{ n }}
+                        </button>
+                    </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs text-gray-500 mb-1">症狀 (可複選)</label>
+                    <label class="block text-xs text-gray-500 mb-1">症狀</label>
                     <div class="grid grid-cols-2 gap-2 text-sm">
                         <label class="flex items-center space-x-2"><input type="checkbox" value="對光敏感" v-model="form.symptoms"><span>對光敏感</span></label>
                         <label class="flex items-center space-x-2"><input type="checkbox" value="對聲音敏感" v-model="form.symptoms"><span>對聲音敏感</span></label>
@@ -256,11 +313,11 @@
 
                 <div class="pt-4 border-t border-gray-100">
                     <label class="flex items-center space-x-2 mb-3 cursor-pointer">
-                        <input type="checkbox" v-model="form.hasMeds" class="w-5 h-5 text-cinn-blue rounded border-gray-300 focus:ring-cinn-blue">
+                        <input type="checkbox" v-model="form.hasMeds" class="w-5 h-5 text-cinn-blue rounded border-gray-300">
                         <span class="font-bold text-gray-700">本次有服用藥物嗎？</span>
                     </label>
 
-                    <div v-if="form.hasMeds" class="bg-green-50 p-3 rounded-lg border border-green-100 space-y-3 animate-fade-in">
+                    <div v-if="form.hasMeds" class="bg-green-50 p-3 rounded-lg border border-green-100 space-y-3">
                         <div>
                             <label class="block text-xs text-green-700 mb-1">藥物種類</label>
                             <div class="space-y-1 text-sm">
@@ -271,7 +328,7 @@
                         </div>
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-xs text-green-700 mb-1">服用時間</label>
+                                <label class="block text-xs text-green-700 mb-1">時間</label>
                                 <input type="time" v-model="form.medTime" class="w-full bg-white border border-green-200 rounded p-1 text-sm">
                             </div>
                             <div>
@@ -288,10 +345,18 @@
             </div>
 
             <div v-if="modalType === 'exercise'" class="space-y-3">
-                <label class="block text-sm text-gray-600">運動項目</label>
-                <input type="text" v-model="form.item" placeholder="例如：跑步 3km" class="w-full bg-gray-50 border border-gray-200 rounded p-2">
-                <label class="block text-sm text-gray-600">時間</label>
-                <input type="time" v-model="form.time" class="w-full bg-gray-50 border border-gray-200 rounded p-2">
+                 <div class="col-span-2">
+                     <label class="block text-xs text-gray-500 mb-1">日期</label>
+                     <input type="date" v-model="form.date" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm font-sans">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-600">運動項目</label>
+                    <input type="text" v-model="form.item" placeholder="例如：跑步 3km" class="w-full bg-gray-50 border border-gray-200 rounded p-2">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-600">時間</label>
+                    <input type="time" v-model="form.time" class="w-full bg-gray-50 border border-gray-200 rounded p-2">
+                </div>
             </div>
 
             <div v-if="modalType === 'period'" class="space-y-3">
@@ -302,8 +367,8 @@
             </div>
 
             <div class="mt-8 flex gap-3">
-                <button @click="isModalOpen = false" class="flex-1 py-2 rounded-lg border border-gray-300 text-gray-500 hover:bg-gray-50">取消</button>
-                <button @click="saveRecord" class="flex-1 py-2 rounded-lg bg-cinn-blue text-white shadow-md hover:bg-blue-600">儲存</button>
+                <button @click="isModalOpen = false" class="flex-1 py-3 rounded-xl border border-gray-300 text-gray-500 hover:bg-gray-50">取消</button>
+                <button @click="saveRecord" class="flex-1 py-3 rounded-xl bg-cinn-blue text-white shadow-md hover:bg-blue-600 font-bold">儲存</button>
             </div>
             
             <button v-if="isEditing" @click="deleteConfirm" class="w-full mt-3 py-2 text-red-400 text-sm hover:underline">刪除此紀錄</button>
@@ -314,91 +379,113 @@
 </div>
 
 <script>
-    const { createApp, ref, computed, reactive } = Vue;
+    const { createApp, ref, computed, reactive, watch, onMounted } = Vue;
 
     createApp({
         setup() {
+            const STORAGE_KEY = 'headache-diary-v2'; // 資料庫名稱
             const currentTab = ref('headache');
             const isModalOpen = ref(false);
             const isEditing = ref(false);
             const modalType = ref('');
             const editingId = ref(null);
 
-            // 資料儲存 (新增了 med 相關欄位到 headacheRecords)
-            const headacheRecords = ref([
-                { 
-                    id: 1, 
-                    period: '晚', 
-                    time: '20:30', 
-                    intensity: 2, 
-                    symptoms: ['對光敏感', '噁心'],
-                    hasMeds: true,
-                    medNames: ['Imigran'],
-                    medTime: '20:45',
-                    medReaction: '有效'
-                },
-                { 
-                    id: 2, 
-                    period: '睡覺', 
-                    time: '23:00', 
-                    intensity: 1, 
-                    symptoms: ['單側開始'],
-                    hasMeds: false,
-                    medNames: [],
-                    medTime: '',
-                    medReaction: ''
-                }
-            ]);
-            
+            // 資料容器 (使用 ref，預設為空陣列)
+            const headacheRecords = ref([]);
             const exerciseRecords = ref([]);
             const periodRecords = ref([]);
 
-            // 表單模型 (包含合併後的欄位)
+            // 表單模型 (加入 character 和 date)
             const form = reactive({
-                // 頭痛欄位
+                character: 'cinnamoroll', // 預設大耳狗
+                date: '', // 日期
                 period: '早', time: '', intensity: 1, symptoms: [],
-                // 投藥欄位 (整合)
                 hasMeds: false, medNames: [], medTime: '', medReaction: '有效',
-                // 其他
                 item: '', startDate: '', endDate: ''
             });
+
+            // 1. 初始化載入資料 (LocalStorage)
+            onMounted(() => {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    headacheRecords.value = parsed.headache || [];
+                    exerciseRecords.value = parsed.exercise || [];
+                    periodRecords.value = parsed.period || [];
+                }
+            });
+
+            // 2. 監聽資料變更並自動儲存
+            const saveDataToStorage = () => {
+                const data = {
+                    headache: headacheRecords.value,
+                    exercise: exerciseRecords.value,
+                    period: periodRecords.value
+                };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            };
+
+            // 使用 deep watch 確保陣列內部的變動也能抓到
+            watch([headacheRecords, exerciseRecords, periodRecords], saveDataToStorage, { deep: true });
+
+            // 輔助：清除所有資料 (開發測試用)
+            const clearAllData = () => {
+                if(confirm('確定要清空所有資料嗎？這無法復原喔！')) {
+                    headacheRecords.value = [];
+                    exerciseRecords.value = [];
+                    periodRecords.value = [];
+                    localStorage.removeItem(STORAGE_KEY);
+                }
+            };
 
             // 標題計算
             const getTabTitle = computed(() => {
                 const titles = {
-                    'headache': '頭痛與用藥紀錄',
+                    'headache': '頭痛紀錄',
                     'exercise': '運動紀錄',
                     'period': '生理期紀錄',
-                    'summary': '本月健康統整'
+                    'summary': '雙人健康報表'
                 };
                 return titles[currentTab.value];
             });
 
-            // 統計邏輯 (更新)
-            const summaryData = computed(() => {
-                const level1 = headacheRecords.value.filter(r => r.intensity === 1).length;
-                const level2 = headacheRecords.value.filter(r => r.intensity === 2).length;
-                const level3 = headacheRecords.value.filter(r => r.intensity === 3).length;
-                const maxPain = Math.max(0, ...headacheRecords.value.map(r => r.intensity));
-                
-                // 計算吃藥次數 (根據 hasMeds 屬性)
-                const medCount = headacheRecords.value.filter(r => r.hasMeds).length;
+            // 排序頭痛紀錄 (日期新到舊)
+            const sortedHeadacheRecords = computed(() => {
+                return [...headacheRecords.value].sort((a, b) => {
+                    return new Date(b.date + ' ' + b.time) - new Date(a.date + ' ' + a.time);
+                });
+            });
+
+            // 統計邏輯 (依角色分開計算)
+            const getStats = (charName) => {
+                const list = headacheRecords.value.filter(r => r.character === charName);
+                const severe = list.filter(r => r.intensity === 3).length;
+                const meds = list.filter(r => r.hasMeds).length;
                 
                 return {
-                    totalDays: headacheRecords.value.length,
-                    level1, level2, level3, medCount,
-                    maxPain: maxPain === 0 ? '無' : (maxPain === 1 ? '輕' : (maxPain === 2 ? '中' : '重'))
+                    count: list.length,
+                    severe,
+                    meds
                 };
-            });
+            };
 
             // 方法
             const getIntensityLabel = (val) => ['無', '輕', '中', '重'][val];
 
             const resetForm = () => {
-                form.period = '早'; form.time = ''; form.intensity = 1; form.symptoms = [];
-                form.hasMeds = false; form.medNames = []; form.medTime = ''; form.medReaction = '有效';
+                // 取得今日日期字串 YYYY-MM-DD
+                const today = new Date().toISOString().split('T')[0];
+                const nowTime = new Date().toTimeString().slice(0, 5);
+
+                form.character = 'cinnamoroll'; // 預設
+                form.date = today;
+                form.period = '早'; 
+                form.time = nowTime; 
+                form.intensity = 1; 
+                form.symptoms = [];
+                form.hasMeds = false; form.medNames = []; form.medTime = nowTime; form.medReaction = '有效';
                 form.item = '';
-                form.startDate = ''; form.endDate = '';
+                form.startDate = today; form.endDate = today;
             };
 
             const openModal = (type) => {
@@ -406,13 +493,6 @@
                 isEditing.value = false;
                 editingId.value = null;
                 resetForm();
-                
-                // 預設時間
-                const now = new Date();
-                const timeStr = now.toTimeString().slice(0, 5);
-                form.time = timeStr;
-                form.medTime = timeStr; // 預設吃藥時間也為當下
-                
                 isModalOpen.value = true;
             };
 
@@ -421,13 +501,13 @@
                 isEditing.value = true;
                 editingId.value = record.id;
                 
-                // 填入資料 (包含深拷貝避免參照錯誤)
+                // 深拷貝資料到表單
                 Object.assign(form, JSON.parse(JSON.stringify(record))); 
                 isModalOpen.value = true;
             };
 
             const saveRecord = () => {
-                const data = { ...form }; // Copy
+                const data = { ...form };
                 
                 if (isEditing.value) {
                     let targetArray;
@@ -451,10 +531,12 @@
                     if (modalType.value === 'headache') {
                         headacheRecords.value = headacheRecords.value.filter(r => r.id !== editingId.value);
                     }
-                    // 其他類型的刪除邏輯在 deleteItem 處理，這裡是 Modal 內的刪除
-                    if (modalType.value === 'exercise') exerciseRecords.value = exerciseRecords.value.filter(r => r.id !== editingId.value);
-                    if (modalType.value === 'period') periodRecords.value = periodRecords.value.filter(r => r.id !== editingId.value);
-                    
+                    if (modalType.value === 'exercise') {
+                        exerciseRecords.value = exerciseRecords.value.filter(r => r.id !== editingId.value);
+                    }
+                    if (modalType.value === 'period') {
+                        periodRecords.value = periodRecords.value.filter(r => r.id !== editingId.value);
+                    }
                     isModalOpen.value = false;
                 }
             };
@@ -465,21 +547,11 @@
                 if (type === 'period') periodRecords.value = periodRecords.value.filter(r => r.id !== id);
             };
 
-            const moveRecord = (type, index, direction) => {
-                if (type === 'headache') {
-                    const arr = headacheRecords.value;
-                    const newIndex = index + direction;
-                    if (newIndex >= 0 && newIndex < arr.length) {
-                        [arr[index], arr[newIndex]] = [arr[newIndex], arr[index]];
-                    }
-                }
-            };
-
             return {
                 currentTab, isModalOpen, isEditing, modalType, form,
                 headacheRecords, exerciseRecords, periodRecords,
-                getTabTitle, summaryData, getIntensityLabel,
-                openModal, editRecord, saveRecord, deleteConfirm, deleteItem, moveRecord
+                getTabTitle, getStats, getIntensityLabel, sortedHeadacheRecords,
+                openModal, editRecord, saveRecord, deleteConfirm, deleteItem, clearAllData
             };
         }
     }).mount('#app');
