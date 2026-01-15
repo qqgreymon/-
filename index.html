@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>頭痛日記 - 雙人完整版</title>
+    <title>頭痛日記 - 雙人進階統計版</title>
     
     <link rel="icon" href="icon.png" type="image/png">
     <link rel="apple-touch-icon" href="icon.png">
@@ -200,42 +200,62 @@
         <div v-if="currentTab === 'summary'" class="space-y-6">
             
             <div class="bg-sky-50 border border-sky-200 rounded-xl p-4">
-                <div class="flex items-center gap-2 mb-3 pb-2 border-b border-sky-200">
-                    <span class="bg-sky-400 text-white text-xs font-bold px-2 py-1 rounded-full">大耳狗</span>
-                    <h3 class="font-bold text-gray-700">健康報告</h3>
+                <div class="flex items-center justify-between mb-3 pb-2 border-b border-sky-200">
+                    <div class="flex items-center gap-2">
+                        <span class="bg-sky-400 text-white text-xs font-bold px-2 py-1 rounded-full">大耳狗</span>
+                        <h3 class="font-bold text-gray-700">健康報告</h3>
+                    </div>
+                    <span class="text-xs text-gray-500">頭痛共 {{ getStats('cinnamoroll').totalDays }} 天</span>
                 </div>
-                <div class="grid grid-cols-2 gap-3 mb-3">
+                
+                <div class="grid grid-cols-3 gap-2 mb-3">
                     <div class="bg-white p-2 rounded text-center shadow-sm">
-                        <div class="text-xs text-gray-500">頭痛</div>
-                        <div class="text-xl font-bold text-sky-600">{{ getStats('cinnamoroll').count }} <span class="text-xs">次</span></div>
+                        <div class="text-xs text-gray-400 mb-1">輕度</div>
+                        <div class="text-lg font-bold text-blue-400">{{ getStats('cinnamoroll').level1Days }} <span class="text-xs font-normal text-gray-400">天</span></div>
                     </div>
                     <div class="bg-white p-2 rounded text-center shadow-sm">
-                         <div class="text-xs text-gray-500">投藥</div>
-                         <div class="text-xl font-bold text-emerald-500">{{ getStats('cinnamoroll').meds }} <span class="text-xs">次</span></div>
+                        <div class="text-xs text-gray-400 mb-1">中度</div>
+                        <div class="text-lg font-bold text-yellow-500">{{ getStats('cinnamoroll').level2Days }} <span class="text-xs font-normal text-gray-400">天</span></div>
+                    </div>
+                    <div class="bg-white p-2 rounded text-center shadow-sm">
+                        <div class="text-xs text-gray-400 mb-1">重度</div>
+                        <div class="text-lg font-bold text-red-500">{{ getStats('cinnamoroll').level3Days }} <span class="text-xs font-normal text-gray-400">天</span></div>
                     </div>
                 </div>
+
                 <div class="bg-white/50 p-2 rounded text-sm text-gray-600 space-y-2">
+                     <p><i class="fa-solid fa-pills mr-2 text-green-500"></i>投藥：{{ getStats('cinnamoroll').meds }} 次</p>
                      <p><i class="fa-solid fa-person-running mr-2 text-orange-400"></i>運動：{{ getStats('cinnamoroll').exerciseCount }} 次</p>
                      <p><i class="fa-solid fa-droplet mr-2 text-rose-400"></i>最近經期：{{ getStats('cinnamoroll').lastPeriod }}</p>
                 </div>
             </div>
 
             <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4">
-                <div class="flex items-center gap-2 mb-3 pb-2 border-b border-indigo-200">
-                    <span class="bg-stitch-blue text-white text-xs font-bold px-2 py-1 rounded-full">史迪奇</span>
-                    <h3 class="font-bold text-gray-700">健康報告</h3>
+                <div class="flex items-center justify-between mb-3 pb-2 border-b border-indigo-200">
+                    <div class="flex items-center gap-2">
+                        <span class="bg-stitch-blue text-white text-xs font-bold px-2 py-1 rounded-full">史迪奇</span>
+                        <h3 class="font-bold text-gray-700">健康報告</h3>
+                    </div>
+                    <span class="text-xs text-gray-500">頭痛共 {{ getStats('stitch').totalDays }} 天</span>
                 </div>
-                <div class="grid grid-cols-2 gap-3 mb-3">
+
+                <div class="grid grid-cols-3 gap-2 mb-3">
                     <div class="bg-white p-2 rounded text-center shadow-sm">
-                        <div class="text-xs text-gray-500">頭痛</div>
-                        <div class="text-xl font-bold text-indigo-800">{{ getStats('stitch').count }} <span class="text-xs">次</span></div>
+                        <div class="text-xs text-gray-400 mb-1">輕度</div>
+                        <div class="text-lg font-bold text-blue-400">{{ getStats('stitch').level1Days }} <span class="text-xs font-normal text-gray-400">天</span></div>
                     </div>
                     <div class="bg-white p-2 rounded text-center shadow-sm">
-                         <div class="text-xs text-gray-500">投藥</div>
-                         <div class="text-xl font-bold text-emerald-500">{{ getStats('stitch').meds }} <span class="text-xs">次</span></div>
+                        <div class="text-xs text-gray-400 mb-1">中度</div>
+                        <div class="text-lg font-bold text-yellow-500">{{ getStats('stitch').level2Days }} <span class="text-xs font-normal text-gray-400">天</span></div>
+                    </div>
+                    <div class="bg-white p-2 rounded text-center shadow-sm">
+                        <div class="text-xs text-gray-400 mb-1">重度</div>
+                        <div class="text-lg font-bold text-red-500">{{ getStats('stitch').level3Days }} <span class="text-xs font-normal text-gray-400">天</span></div>
                     </div>
                 </div>
+                
                 <div class="bg-white/50 p-2 rounded text-sm text-gray-600 space-y-2">
+                     <p><i class="fa-solid fa-pills mr-2 text-green-500"></i>投藥：{{ getStats('stitch').meds }} 次</p>
                      <p><i class="fa-solid fa-person-running mr-2 text-indigo-400"></i>運動：{{ getStats('stitch').exerciseCount }} 次</p>
                      <p><i class="fa-solid fa-droplet mr-2 text-indigo-400"></i>最近經期：{{ getStats('stitch').lastPeriod }}</p>
                 </div>
@@ -375,7 +395,7 @@
 
     createApp({
         setup() {
-            const STORAGE_KEY = 'headache-diary-v3'; // 更新資料庫版本號
+            const STORAGE_KEY = 'headache-diary-v4'; // 更新資料庫版本
             const currentTab = ref('headache');
             const isModalOpen = ref(false);
             const isEditing = ref(false);
@@ -434,10 +454,8 @@
                 return titles[currentTab.value];
             });
 
-            // 排序邏輯 (共用)
             const sortByDate = (list) => {
                 return [...list].sort((a, b) => {
-                    // 優先比日期，再比時間(如果有的話)
                     const dateA = a.date || a.startDate;
                     const dateB = b.date || b.startDate;
                     return new Date(dateB) - new Date(dateA);
@@ -448,24 +466,47 @@
             const sortedExerciseRecords = computed(() => sortByDate(exerciseRecords.value));
             const sortedPeriodRecords = computed(() => sortByDate(periodRecords.value));
 
-            // 統計邏輯 (全面升級)
+            // *** 核心修改：統計邏輯 ***
             const getStats = (charName) => {
-                // 1. 頭痛
+                // 1. 篩選出該角色的頭痛紀錄
                 const hList = headacheRecords.value.filter(r => r.character === charName);
-                const severe = hList.filter(r => r.intensity === 3).length;
-                const meds = hList.filter(r => r.hasMeds).length;
                 
-                // 2. 運動
-                const eList = exerciseRecords.value.filter(r => r.character === charName);
+                // 2. 以「日期」為單位，計算每日最大疼痛值
+                const dailyMaxPain = {}; // 用物件存這一天最痛是多少 { '2024-05-20': 3, '2024-05-21': 1 }
+                
+                hList.forEach(r => {
+                    const d = r.date;
+                    if (!d) return; // 防呆
+                    
+                    // 如果這一天還沒紀錄，或這筆紀錄比目前的紀錄更痛，就更新
+                    if (!dailyMaxPain[d] || r.intensity > dailyMaxPain[d]) {
+                        dailyMaxPain[d] = r.intensity;
+                    }
+                });
 
-                // 3. 生理期 (找最近一次)
+                // 3. 計算各等級的天數
+                let level1Days = 0;
+                let level2Days = 0;
+                let level3Days = 0;
+                
+                Object.values(dailyMaxPain).forEach(intensity => {
+                    if (intensity === 1) level1Days++;
+                    if (intensity === 2) level2Days++;
+                    if (intensity === 3) level3Days++;
+                });
+
+                // 4. 其他統計 (投藥次數仍算次數，不以天計，因為可能一天吃兩次藥)
+                const meds = hList.filter(r => r.hasMeds).length;
+                const eList = exerciseRecords.value.filter(r => r.character === charName);
                 const pList = periodRecords.value.filter(r => r.character === charName);
                 const sortedP = pList.sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
                 const lastPeriod = sortedP.length > 0 ? sortedP[0].startDate : '無紀錄';
 
                 return {
-                    count: hList.length,
-                    severe,
+                    totalDays: Object.keys(dailyMaxPain).length, // 總頭痛天數
+                    level1Days,
+                    level2Days,
+                    level3Days,
                     meds,
                     exerciseCount: eList.length,
                     lastPeriod
@@ -475,10 +516,7 @@
             const resetForm = () => {
                 const today = new Date().toISOString().split('T')[0];
                 const nowTime = new Date().toTimeString().slice(0, 5);
-
-                // character 不重置，保留使用者上次選擇的習慣，或預設大耳狗
                 if (!form.character) form.character = 'cinnamoroll';
-                
                 form.date = today;
                 form.period = '早'; 
                 form.time = nowTime; 
@@ -507,7 +545,6 @@
 
             const saveRecord = () => {
                 const data = { ...form };
-                
                 let targetArray;
                 if (modalType.value === 'headache') targetArray = headacheRecords;
                 if (modalType.value === 'exercise') targetArray = exerciseRecords;
